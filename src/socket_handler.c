@@ -15,6 +15,9 @@ const char *FTP_PREFIX   = "ftp";
 const char *SMTP_PREFIX  = "smtp";
 const char *IMAP_PREFIX  = "imap";
 
+//Prototypes
+static protocol get_protocol(char *);
+
 int url_parser
 (char *url, url_info *info)
 {
@@ -29,12 +32,37 @@ int url_parser
     }
     
     if (!rc) {
-        info->host_name = strtok(parse_url, PROTOCOL_DELIMITER);
-    
-        printf("%s\n", parse_url);
+        strcpy(buffer, strtok(parse_url, PROTOCOL_DELIMITER));
+        info -> protocol = get_protocol(buffer);
+    }
+
+    if (!rc) {
+
     }
      
     
     return rc;
 }
 
+static protocol get_protocol(char *buffer) {
+    protocol r_protocol = PROTOCOL_UNKNOWN;
+    if (!strcmp(buffer, HTTP_PREFIX)) {
+        r_protocol = PROTOCOL_HTTP;
+
+    } else if(!strcmp(buffer, HTTPS_PREFIX)) {
+        r_protocol = PROTOCOL_HTTPS;
+
+    } else if(!strcmp(buffer, FTP_PREFIX)) {
+        r_protocol = PROTOCOL_FTP;
+
+    } else if(!strcmp(buffer, SMTP_PREFIX)) {
+        r_protocol = PROTOCOL_SMTP;
+
+    } else if(!strcmp(buffer, IMAP_PREFIX)) {
+        r_protocol = PROTOCOL_IMAP;
+
+    } else if(!strlen(buffer)) {
+        r_protocol = PROTOCOL_TCP_UDP;
+    }
+    return r_protocol;
+}

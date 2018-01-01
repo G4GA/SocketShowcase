@@ -5,7 +5,7 @@ typedef unsigned short port;
 
 enum {
     PARSE_SUCCESS = 0,
-    URL_OVERFLOW
+    URL_OVERFLOW,
 };
 
 typedef enum {
