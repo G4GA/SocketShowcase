@@ -6,8 +6,8 @@
 
 //Definitions for the constants strings
 const char *PROTOCOL_DELIMITER = "://";
-const char PORT_DELIMITER     = ':';
-const char PATH_DELIMITER     = '/';
+const char PORT_DELIMITER      = ':';
+const char PATH_DELIMITER      = '/';
 
 const char *HTTP_PREFIX  = "http";
 const char *HTTPS_PREFIX = "https";
@@ -16,9 +16,11 @@ const char *SMTP_PREFIX  = "smtp";
 const char *IMAP_PREFIX  = "imap";
 
 //Local function prototypes
-static int get_url_copy(char *, char *, int);
-static protocol get_protocol(char *, char **);
-static port get_port(char *, char *, char **);
+static int      get_url_copy (char *, char *, int);
+static protocol get_protocol (char *, char **);
+static int      get_port     (char *, char *, char **, port *);
+static void     get_host_name(char *, char **, int);
+
 static inline void get_port_path_pointers(char *, char **, char **);
 
 int url_parser
@@ -36,11 +38,17 @@ int url_parser
     rc = get_url_copy(parse_url, url, rc);
 
     if (!rc) {
-        info -> protocol = get_protocol(parse_url, &protocol_del);
-        info -> port = get_port(parse_url, protocol_del, &port_path_del); 
+        info->protocol = get_protocol(parse_url, &protocol_del);
+        rc = get_port(parse_url, protocol_del, &port_path_del, &info->port); 
     }
 
-    printf("Protocol: %d\nPort Value: %d\n", info -> protocol, info -> port);
+    if (!rc) {
+        if (protocol_del) {
+        } else {
+        }
+    }
+
+    printf("Protocol: %d\nPort Value: %d\n", info->protocol, info->port);
     
     return rc;
 }
@@ -87,10 +95,11 @@ static protocol get_protocol
     return r_protocol;
 }
 
-static port get_port
-(char *url, char *protocol_del, char **port_path_del)
+static int get_port
+(char *url, char *protocol_del, char **port_path_del, port *r_port)
 {
-    port r_port = UNKNOWN_PORT;
+    *r_port = UNKNOWN_PORT;
+    int rc = 0;
     char *port_d = NULL;
     char *path_d = NULL;
 
@@ -105,13 +114,17 @@ static port get_port
     if (port_d) {
         if (path_d) {
             if (port_d < path_d) {
-                stroul();
+                if (1 != sscanf(port_d, ":%hu/", r_port)) {
+                    rc = PARSE_FAILURE;
+                }
             }
         } else {
-
+            if (1 != sscanf(port_d, ":%hu", r_port)) {
+                rc = PARSE_FAILURE;
+            }
         }
     }
-    return r_port;
+    return rc;
 }
 
 static inline void get_port_path_pointers
@@ -119,4 +132,8 @@ static inline void get_port_path_pointers
 {
     *port_d_pointer = strchr(url, PORT_DELIMITER);
     *path_d_pointer = strchr(url, PATH_DELIMITER);
+}
+
+static void get_host_name(char *url, char **host_name, int length)
+{
 }
