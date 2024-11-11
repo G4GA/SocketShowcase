@@ -40,7 +40,7 @@ int url_parser
         info -> port = get_port(parse_url, protocol_del, &port_path_del); 
     }
 
-    printf("Protocol: ");
+    printf("Protocol: %d\nPort Value: %d\n", info -> protocol, info -> port);
     
     return rc;
 }
@@ -100,6 +100,16 @@ static port get_port
     } else {
         char *offset_url = protocol_del + strlen(PROTOCOL_DELIMITER);
         get_port_path_pointers(offset_url, &port_d, &path_d);
+    }
+
+    if (port_d) {
+        if (path_d) {
+            if (port_d < path_d) {
+                stroul();
+            }
+        } else {
+
+        }
     }
     return r_port;
 }
