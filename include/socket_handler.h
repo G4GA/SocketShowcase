@@ -6,6 +6,7 @@ typedef unsigned short port;
 enum {
     PARSE_SUCCESS = 0,
     URL_OVERFLOW,
+    EMPTY_URL
 };
 
 typedef enum {
@@ -24,6 +25,7 @@ typedef enum {
     FTP_PORT     = 21,
     SMTP_PORT    = 25,
     IMAP_PORT    = 143,
+    UNKNOWN_PORT = 0,
 } default_ports;
 
 typedef struct {
