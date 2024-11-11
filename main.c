@@ -1,10 +1,7 @@
-#include <stdio.h>
 #include <socket_handler.h>
 
-int main ()
+int main (int argc, char *argv[])
 {
-    printf("Hello World\n");
-    say_hi_to("Damian");
 
     return 0;
 }
