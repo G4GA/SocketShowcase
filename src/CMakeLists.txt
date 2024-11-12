@@ -1,6 +1,7 @@
 project(core_src)
 
-set(PROJECT_SOURCES socket_handler.c)
+set(PROJECT_SOURCES socket_handler.c
+                    gui.c)
 
 add_library(${PROJECT_NAME} STATIC ${PROJECT_SOURCES})
 

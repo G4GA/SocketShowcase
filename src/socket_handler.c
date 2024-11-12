@@ -2,7 +2,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <netdb.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+ 
 #define URL_MAX_SIZE 2048
 
 //Definitions for the constants strings
@@ -123,7 +127,7 @@ static int get_port
                 *port_path_del = path_d;
             }
         } else {
-            
+            *port_path_del = port_d;
             if (1 != sscanf(port_d, ":%hu", r_port)) {
                 rc = PARSE_FAILURE;
             }
@@ -195,14 +199,8 @@ static int get_host_name
     return rc;
 }
 
-int resolve_addrinfo
-(const url_info* info, struct addrinfo **result, int ip_protocol)
+int resolve_addrinfo(const url_info* info)
 {
-    int rc = 0;
-    struct addrinfo hints = {0};
-    hints.ai_family = ip_protocol;
-    hints.ai_socktype = SOCK_STREAM;
-
-    rc = getaddrinfo(info->host_name, NULL, &hints, result);
-    return rc;
+    struct addrinfo* hints = {0};
+    return 0;
 }

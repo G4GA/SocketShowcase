@@ -1,7 +1,11 @@
 #ifndef SOCKET_HANDLER 
 #define SOCKET_HANDLER 
 
+#include "raylib.h"
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <netdb.h>
+#include <arpa/inet.h>
 
 typedef unsigned short port;
 
@@ -39,6 +43,6 @@ typedef struct {
 } url_info;
 
 int url_parser(char *, url_info *);
-int resolve_addrinfo(const url_info*, struct addrinfo **, int);
+int resolve_addrinfo(const url_info*);
 
 #endif
