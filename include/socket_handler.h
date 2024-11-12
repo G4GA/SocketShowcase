@@ -1,11 +1,14 @@
 #ifndef SOCKET_HANDLER 
 #define SOCKET_HANDLER 
 
+#include <netdb.h>
+
 typedef unsigned short port;
 
 enum {
     PARSE_SUCCESS = 0,
     PARSE_FAILURE,
+    FAILED_MALLOC,
     URL_OVERFLOW,
     EMPTY_URL,
 };
@@ -36,5 +39,6 @@ typedef struct {
 } url_info;
 
 int url_parser(char *, url_info *);
+int resolve_addrinfo(const url_info*, struct addrinfo **, int);
 
 #endif
