@@ -23,6 +23,7 @@ void init_app()
     Texture2D tux = LoadTextureFromImage(img);
     Color bg_color = GetColor(0xEEDF7AFF);
     SetTextureFilter(font.texture, TEXTURE_FILTER_TRILINEAR);
+    SetTextureFilter(tux, TEXTURE_FILTER_TRILINEAR);
 
     //Set fps
     SetTargetFPS(30);
@@ -36,7 +37,7 @@ void init_app()
 
         BeginDrawing();
         ClearBackground(bg_color);
-        DrawTextEx(font, "Address Information", (Vector2) {20 , 20},  32, 1, DARKGRAY);
+        DrawTextEx(font, "Address Information", (Vector2) {20 , 20},  32, 1, BLACK);
         DrawTextEx(font, "IP Address:",         (Vector2) {50, 100 }, 24, 1, DARKGRAY);
         DrawTextEx(font, "Port:",               (Vector2) {50, 140 }, 24, 1, DARKGRAY);
         DrawTextEx(font, "Address Family:",     (Vector2) {50, 180 }, 24, 1, DARKGRAY);
@@ -47,7 +48,7 @@ void init_app()
 
         DrawTextEx(font, "< Previous",          (Vector2) {50, 400 }, 32, 1, BLUE);
         DrawTextEx(font, "Next >",              (Vector2) {400, 400}, 32, 1, BLUE);
-        DrawTextureEx(tux, (Vector2) {400, 220}, 0.2, 1, DARKGRAY);
+        DrawTextureEx(tux, (Vector2) {400, 220}, 1, 0.5, RAYWHITE);
         EndDrawing();
     } 
     UnloadFont(font);
