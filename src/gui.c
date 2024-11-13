@@ -2,28 +2,15 @@
 #include <socket_handler.h>
 #include <string.h>
 #include <raylib.h>
+#include <stdio.h>
 
 const size_t WIDTH = 800;
 const size_t HEIGHT = 600;
 
-void set_window
-(size_t width, size_t height, char *title, win_info *window_info)
-{
-    //Setting window dimensions
-    window_info->width = width;
-    window_info->height = height;
-    //Seting window title
-    memset(&window_info->window_title,
-           0,
-           sizeof(window_info->window_title));
-    strcpy(window_info->window_title, title);
-    //Setting font
-}
-
 void init_app()
 {
     win_info window_info;
-    Font font;
+
     set_window(WIDTH, HEIGHT,
                "Sockets!", &window_info);
 
@@ -31,6 +18,12 @@ void init_app()
     InitWindow(window_info.width,
                window_info.height,
                window_info.window_title);
+    Font font = LoadFont("static/jmono.fnt");
+    Image img = LoadImage("static/tuxito.png");
+    Texture2D tux = LoadTextureFromImage(img);
+    Color bg_color = GetColor(0xEEDF7AFF);
+    SetTextureFilter(font.texture, TEXTURE_FILTER_TRILINEAR);
+
     //Set fps
     SetTargetFPS(30);
 
@@ -42,23 +35,38 @@ void init_app()
     while(!WindowShouldClose()) {
 
         BeginDrawing();
-        ClearBackground(RAYWHITE);
-        DrawText( "Address Information",  50, 20 , 20,  DARKGRAY);
-        DrawText( "IP Address:",          50, 100 , 20,  DARKGRAY);
-        DrawText( "Port:",                50, 140 , 20,  DARKGRAY);
-        DrawText( "Address Family:",      50, 180 , 20,  DARKGRAY);
-        DrawText( "Socket Type:",         50, 220 , 20,  DARKGRAY);
-        DrawText( "Protocol:",            50, 260 , 20,  DARKGRAY);
-        DrawText( "Canonical Name:",      50, 300 , 20,  DARKGRAY);
-        DrawText( "Scope ID (IPv6):",     50, 340 , 20,  DARKGRAY);
-        
-        DrawText( "< Previous",           50, 400 , 32,  BLUE);
-        DrawText( "Next >",               400, 400,  32,  BLUE);
+        ClearBackground(bg_color);
+        DrawTextEx(font, "Address Information", (Vector2) {20 , 20},  32, 1, DARKGRAY);
+        DrawTextEx(font, "IP Address:",         (Vector2) {50, 100 }, 24, 1, DARKGRAY);
+        DrawTextEx(font, "Port:",               (Vector2) {50, 140 }, 24, 1, DARKGRAY);
+        DrawTextEx(font, "Address Family:",     (Vector2) {50, 180 }, 24, 1, DARKGRAY);
+        DrawTextEx(font, "Socket Type:",        (Vector2) {50, 220 }, 24, 1, DARKGRAY);
+        DrawTextEx(font, "Protocol:",           (Vector2) {50, 260 }, 24, 1, DARKGRAY);
+        DrawTextEx(font, "Canonical Name:",     (Vector2) {50, 300 }, 24, 1, DARKGRAY);
+        DrawTextEx(font, "Scope ID (IPv6):",    (Vector2) {50, 340 }, 24, 1, DARKGRAY);
+
+        DrawTextEx(font, "< Previous",          (Vector2) {50, 400 }, 32, 1, BLUE);
+        DrawTextEx(font, "Next >",              (Vector2) {400, 400}, 32, 1, BLUE);
+        DrawTextureEx(tux, (Vector2) {400, 220}, 0.2, 1, DARKGRAY);
         EndDrawing();
     } 
-
     UnloadFont(font);
     CloseWindow();
+}
+
+void set_window
+(size_t width, size_t height, char *title, win_info *window_info)
+{
+    //Setting window dimensions
+    window_info->width = width;
+    window_info->height = height;
+
+    //Seting window title
+    memset(&window_info->window_title,
+           0,
+           sizeof(window_info->window_title));
+    strcpy(window_info->window_title, title);
+    //Setting font
 }
 
 void fill_addr_display_info(char *url, addr_display_info *info)
