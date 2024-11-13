@@ -70,9 +70,3 @@ void set_window
     //Setting font
 }
 
-void fill_addr_display_info(char *url, addr_display_info *info)
-{
-    url_info url_info;
-    struct addrinfo *result = NULL;
-    
-}
