@@ -2,13 +2,13 @@
 #define GUI_H
 
 #include <stdlib.h>
-
 #include <arpa/inet.h>
 
+#define LABEL_ARRAY_SIZE 32
 
 // DISPLAY_INFO.C Source declarations
 typedef struct {
-    char label[20];
+    char label[LABEL_ARRAY_SIZE];
     char *info;
 } info_pair;
 
@@ -27,7 +27,9 @@ enum {
 };
 
 void init_display_info(display_info *);
-int fill_display_info(display_info *, char *info_array[]);
+void fill_display_info(display_info *, char *[]);
+
+char arr[9];
 
 // GUI.C Source declarations
 typedef struct {
