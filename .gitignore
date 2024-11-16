@@ -1,0 +1,11 @@
+build
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+CMakeLists.txt
+compile_commands.json
+CPack*.cmake
+include
+.logs/
+.cache/
+Makefile
