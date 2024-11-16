@@ -2,12 +2,11 @@
 #include <socket_handler.h>
 #include <string.h>
 #include <raylib.h>
-#include <stdio.h>
 
 const size_t WIDTH = 800;
 const size_t HEIGHT = 600;
 
-void init_app()
+void init_window()
 {
     win_info window_info;
 

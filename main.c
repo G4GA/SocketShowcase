@@ -1,9 +1,8 @@
-#include <gui.h>
+#include "manager.h"
 
 
 int main (int argc, char *argv[])
 {
-    init_app();
     
-    return 0;
+    return init_app();
 }

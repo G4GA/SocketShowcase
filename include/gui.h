@@ -29,7 +29,6 @@ enum {
 void init_display_info(display_info *);
 void fill_display_info(display_info *, char *[]);
 
-char arr[9];
 
 // GUI.C Source declarations
 typedef struct {
@@ -42,5 +41,5 @@ extern const size_t WIDTH;
 extern const size_t HEIGHT;
 
 void set_window(size_t, size_t, char *, win_info *);
-void init_app();
+void init_window();
 #endif
