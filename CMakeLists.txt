@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.28)
 
 project(SocketShowcase)
+# Enable logging in debug builds
+option(ENABLE_LOGGING "Enable or disable logging" OFF)
+
+if(ENABLE_LOGGING)
+    add_compile_definitions(ENABLE_LOGGING) # Adds -DENABLE_LOGGING
+endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-g -O0 -Wall -Wextra -Wpedantic)

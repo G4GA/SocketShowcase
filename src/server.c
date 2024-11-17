@@ -1,23 +1,21 @@
 #include "server.h"
 #include <stdio.h>
-#include <time.h>
 #include <unistd.h>
-
-//Internal functions
-int log_message(char *);
+#include <stdbool.h>
+#include "include/log.h"
 
 int init_server()
 {
     int rc = 0;
+    int log_rc = 0;
+    LOG_S logs; 
 
-    printf("Server initialization");
+    logs = INIT_LOG_S("server.log", true);
+
+    LOG("Holi", &logs);
+
+    FREE_LOG_S(&logs);
+
     return rc;
 }
 
-//Internal function definitions
-int log_message(char *msg)
-{
-    printf("%s", msg);
-
-    int rc = 0;
-}

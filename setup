@@ -9,29 +9,25 @@ run_nvim() {
     cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 .
 }
 
-if [ -n "$command" ];
+if [ "$command" = "build" ];
 then
-    if [ "$command" = "build" ];
-    then
-        make -C build -j$(nproc)
-    fi
-    if [ "$command" = "run" ];
-    then
-        "build/$PROJECT_NAME"
-    fi
-    if [ "$command" = "--f-nvim" ];
-    then
-        run_nvim
-    fi
+    make -C build -j$(nproc) 
+
+elif [ "$command" = "run" ];
+then
+    "build/$PROJECT_NAME" "${@:2}"
+
+elif [ "$command" = "--f-nvim" ];
+then
+    run_nvim
 else
     echo "Set up script and build/run commands"
     sleep 1
     echo "Running cmake..."
-    cmake -B build -S .
+    cmake -B build -S . "${@:1}"
     sleep 1
     if ! test -f "./compile_commands.json";
     then
         run_nvim     
     fi
 fi
-
