@@ -11,7 +11,8 @@
 
 void get_time_str(char *);
 
-struct log_s init_log_s(const char *file_name, bool enable_print)
+struct log_s init_log_s
+(const char *file_name, bool enable_print)
 {
     LOG_S log_struct;
 
@@ -28,7 +29,8 @@ struct log_s init_log_s(const char *file_name, bool enable_print)
     return log_struct;
 }
 
-int log_msg(const char *msg, struct log_s* lg_p)
+int log_msg
+(const char *msg, struct log_s* lg_p)
 {
 
     int rc = 0;
@@ -36,24 +38,32 @@ int log_msg(const char *msg, struct log_s* lg_p)
 
     get_time_str(&time_str);
 
-    size_t msg_size = strlen(time_str) + strlen(msg) + 1;
+    size_t msg_size = strlen(time_str) + strlen(msg) + 2;
 
-    if (lg_p->enable_print)
-        printf("%s %s\n", time_str, msg);
 
         
     lg_p->buffer[lg_p->index] = calloc(msg_size, sizeof(char));
 
     if (lg_p->buffer[lg_p->index])
-        sprintf(lg_p->buffer[lg_p->index], "%s%s\n", time_str, msg);
+        strcpy(lg_p->buffer[lg_p->index], time_str);
+        strcat(lg_p->buffer[lg_p->index], msg);
+        strcat(lg_p->buffer[lg_p->index], "\n");
+
+    if (lg_p->enable_print)
+        printf("%s", lg_p->buffer[lg_p->index]);
+    fflush(stdout);
+
 
     lg_p->index ++;
+
 
     if (BUFFER_SIZE == lg_p->index) {
         int fd;
         fd = open(lg_p->file_name, 
                   O_APPEND | O_WRONLY | O_CREAT,
                   0664);
+
+        printf("fd value: %d", fd);
 
 
         if (-1 == fd) {
@@ -76,16 +86,22 @@ int log_msg(const char *msg, struct log_s* lg_p)
     return rc;
 }
 
-void free_logs(struct log_s* logs)
+void free_logs
+(struct log_s* logs)
 {
+    int fd = open(logs->file_name, 
+                  O_APPEND | O_WRONLY | O_CREAT,
+                  0664);
     for (size_t i = 0; i < logs->index; i++) {
         if (logs->buffer[i]) {
+            write (fd, logs->buffer[i], strlen(logs->buffer[i]));
             free(logs->buffer[i]);
         }
     }
 }
 
-void get_time_str(char *time_str)
+void get_time_str
+(char *time_str)
 {
     struct timeval tv;
     struct tm *timeinfo;

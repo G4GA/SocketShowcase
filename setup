@@ -4,6 +4,8 @@ command=$1
     
 PROJECT_NAME="$(pwd | grep -o '[^/]*$')"
 
+mkdir -p .logs
+
 run_nvim() {
     echo "Creating json file for nvim lsp"
     cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 .
