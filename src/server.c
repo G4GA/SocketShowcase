@@ -10,15 +10,17 @@
 #include "server.h"
 #include "include/log.h"
 
+void *get_in_addr(struct sockaddr *);
+
 int init_server()
 {
     int rc = 0;
-    int log_rc = 0;
     char log_buffer[LOG_BUFF_SIZE] = {0};
     char ip_str[INET_ADDRSTRLEN];
     void *addr;
+    int sock_fd;
     LOG_S logs; 
-    struct addrinfo hints, *local_info, *next;
+    struct addrinfo hints, *local_info;
     
     fill_hints(&hints);
 
@@ -26,7 +28,7 @@ int init_server()
 
     LOG("Server initialization", &logs);
     LOG("Getting local addres information", &logs); 
-    rc = getaddrinfo("127.0.0.1", "80", &hints, &local_info);
+    rc = getaddrinfo("0.0.0.0", "80", &hints, &local_info);
     if (rc) {
         sprintf(log_buffer, "getaddrinfo failed with return code: %d", rc);
         LOG(log_buffer, &logs);
@@ -37,8 +39,17 @@ int init_server()
         inet_ntop(local_info->ai_family, addr, ip_str, sizeof(ip_str));
         sprintf(log_buffer, "Local IP addr: %s", ip_str);
         LOG(log_buffer, &logs);
-        init_socket(&logs, log_buffer, local_info);
+
+        rc = init_socket(&logs, log_buffer, local_info, &sock_fd);
+        freeaddrinfo(local_info);
     }
+    
+
+    if (!rc) {
+        LOG("Inside if statement, to listen from port", &logs);
+        start_listening(&logs, log_buffer, sock_fd, ip_str);
+    }
+
 
 
     FREE_LOG_S(&logs);
@@ -47,26 +58,22 @@ int init_server()
 }
 
 int init_socket
-(LOG_S *logs, char log_buffer[], struct addrinfo *info)
+(LOG_S *logs, char log_buffer[], struct addrinfo *info, int *sock_fd)
 {
     int rc = 0;
-    int sock_fd;
     LOG("Initializing socket", logs);
-    sock_fd = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
-    sprintf(log_buffer, "Socket file descriptor: %d", sock_fd);
+    *sock_fd = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
+    sprintf(log_buffer, "Socket file descriptor: %d", *sock_fd);
     LOG(log_buffer, logs);
     memset(log_buffer, 0, LOG_BUFF_SIZE);
-    rc = bind(sock_fd, info->ai_addr, info->ai_addrlen);
+    rc = bind(*sock_fd, info->ai_addr, info->ai_addrlen);
     if (!rc) {
         LOG("Socket binded successfully", logs);
-        freeaddrinfo(info);
-
-
-        rc = start_listening(sock_fd, log_buffer);
     } else {
         sprintf(log_buffer, "Error binding socket. errno: %s", 
                 strerror(rc));
         LOG(log_buffer, logs);
+        memset(log_buffer, 0, LOG_BUFF_SIZE);
         if (-1 == rc) {
             LOG("Cannot bind socket unless root", logs);
         }
@@ -75,16 +82,36 @@ int init_socket
 }
 
 int start_listening
-(LOG_S* logs, char log_buffer[], int sock_fd) 
+(LOG_S* logs, char log_buffer[], int sock_fd, char local_ip[]) 
 {
     socklen_t sin_size;
+    struct sockaddr_storage their_addres;
+    char ip_str[INET6_ADDRSTRLEN] = {0};
     int new_fd;
     listen(sock_fd, 10);
 
-    for(size_t i = 0; i < 2; i++) {
+    sprintf(log_buffer, "Listening from: %s", local_ip);
+    LOG(log_buffer, logs);
+    memset(log_buffer, 0, LOG_BUFF_SIZE);
 
-        LOG(log_buffer, "Listening on ");
+    while(true) {
+        sin_size = sizeof(their_addres);
+        new_fd = accept(sock_fd, (struct sockaddr *)&their_addres, &sin_size);
+
+        if (-1 == new_fd) {
+            continue;
+        }
+
+        inet_ntop(their_addres.ss_family, 
+                  get_in_addr((struct sockaddr *)&their_addres),
+                  ip_str, sizeof(ip_str));
+
+        sprintf(log_buffer, "Got connection from: %s", ip_str);
+        LOG(log_buffer, logs);
+        memset(log_buffer, 0, LOG_BUFF_SIZE);
     }
+
+    return 0;
 }
 
 void fill_hints
@@ -96,3 +123,13 @@ void fill_hints
     hints->ai_flags = 0;
 }
 
+void *get_in_addr(struct sockaddr *sa)
+{
+    void *addr_p = &(((struct sockaddr_in6 *)sa)->sin6_addr);
+
+    if (sa -> sa_family == AF_INET) {
+        addr_p = &(((struct sockaddr_in *)sa)->sin_addr); 
+    }
+
+    return addr_p;
+}
