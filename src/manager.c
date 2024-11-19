@@ -32,6 +32,10 @@ int init_app()
                 proc_pair.server, proc_pair.gui);
         LOG(log_str, &logs);
         FREE_LOG_S(&logs);
+    } else {
+        while (true) {
+            sleep(1);
+        }
     }
 
     return rc;

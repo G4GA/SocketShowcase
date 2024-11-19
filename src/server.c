@@ -1,8 +1,11 @@
 #include <stdio.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <netdb.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
+#include <sys/stat.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -10,7 +13,15 @@
 #include "server.h"
 #include "include/log.h"
 
+#define REQ_BUF_SIZE 1024
+
 void *get_in_addr(struct sockaddr *);
+int init_socket(LOG_S *, char [], struct addrinfo *, int *);
+
+int start_listening(LOG_S *, char [], int, char []);
+size_t get_html(char **);
+
+void fill_hints(struct addrinfo *);
 
 int init_server()
 {
@@ -43,14 +54,10 @@ int init_server()
         rc = init_socket(&logs, log_buffer, local_info, &sock_fd);
         freeaddrinfo(local_info);
     }
-    
 
     if (!rc) {
-        LOG("Inside if statement, to listen from port", &logs);
         start_listening(&logs, log_buffer, sock_fd, ip_str);
     }
-
-
 
     FREE_LOG_S(&logs);
 
@@ -84,34 +91,109 @@ int init_socket
 int start_listening
 (LOG_S* logs, char log_buffer[], int sock_fd, char local_ip[]) 
 {
+    size_t html_length;
+    int new_fd;
+    int rc = 0;
+
+    char ip_str[INET6_ADDRSTRLEN] = {0};
+    char *html;
+    char headers[256] = {0};
+    char req_buffer[REQ_BUF_SIZE] = {0};
+
     socklen_t sin_size;
     struct sockaddr_storage their_addres;
-    char ip_str[INET6_ADDRSTRLEN] = {0};
-    int new_fd;
-    listen(sock_fd, 10);
+    
+    html_length = get_html(&html);
 
-    sprintf(log_buffer, "Listening from: %s", local_ip);
-    LOG(log_buffer, logs);
-    memset(log_buffer, 0, LOG_BUFF_SIZE);
+    if (html_length > 0) {
+        snprintf(headers, sizeof(headers), 
+                 "HTTP/1.1 200 OK\r\n"
+                 "Content-Type: text/html\r\n"
+                 "Content-Length: %ld\r\n"
+                 "\r\n", html_length);
+        listen(sock_fd, 10);
 
-    while(true) {
-        sin_size = sizeof(their_addres);
-        new_fd = accept(sock_fd, (struct sockaddr *)&their_addres, &sin_size);
-
-        if (-1 == new_fd) {
-            continue;
-        }
-
-        inet_ntop(their_addres.ss_family, 
-                  get_in_addr((struct sockaddr *)&their_addres),
-                  ip_str, sizeof(ip_str));
-
-        sprintf(log_buffer, "Got connection from: %s", ip_str);
+        sprintf(log_buffer, "Listening from: %s...", local_ip);
         LOG(log_buffer, logs);
         memset(log_buffer, 0, LOG_BUFF_SIZE);
+        while(true) {
+            sin_size = sizeof(their_addres);
+            new_fd = accept(sock_fd, (struct sockaddr *)&their_addres, &sin_size);
+
+            if (-1 == new_fd) {
+                continue;
+            }
+
+            inet_ntop(their_addres.ss_family, 
+                      get_in_addr((struct sockaddr *)&their_addres),
+                      ip_str, sizeof(ip_str));
+
+            sprintf(log_buffer, "Got connection from: %s", ip_str);
+            LOG(log_buffer, logs);
+            memset(log_buffer, 0, LOG_BUFF_SIZE);
+
+            rc = recv(new_fd, req_buffer, REQ_BUF_SIZE, 0);
+            if (-1 == rc) {
+                LOG("Unable to read petition", logs);
+                continue;
+            }
+
+            LOG(req_buffer, logs);
+            
+            if (strncmp(req_buffer, "GET", 3) == 0) {
+                LOG("Here we handle GET requests", logs);
+                rc = send(new_fd, headers, strlen(headers), 0);
+                if (-1 == rc) {
+                    LOG("Unable to send headers", logs);
+                    continue;
+                } 
+
+                rc = send(new_fd, html, html_length, 0);
+                if (-1 == rc) {
+                    LOG("Unable to send html", logs);
+                    continue;
+                }
+            } else if (strncmp(req_buffer, "POST", 4) == 0){
+                LOG("Here we handle POST requests", logs);
+            } else {
+                LOG("We should not see this LOG at all, else for reqest methods", logs);
+            }
+
+            
+            close(new_fd);
+        }
+        close(sock_fd);
+        free(html);
     }
 
     return 0;
+}
+
+size_t get_html(char **html)
+{
+    int fd;
+    int length;
+    struct stat stat_struct;
+    fd = open("./static/index.html", O_RDONLY);
+    if (-1 == fd) {
+        return fd;
+    }
+
+    fstat(fd, &stat_struct);
+    length = stat_struct.st_size;
+    *html = calloc(length + 1, sizeof(char));
+
+    if (NULL == html) {
+        return 0;
+    }
+
+    if (-1 == read(fd, *html, length)) {
+        return 0;
+    }
+
+    close(fd);
+
+    return length;
 }
 
 void fill_hints
