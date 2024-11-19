@@ -20,6 +20,8 @@ int init_socket(LOG_S *, char [], struct addrinfo *, int *);
 
 int start_listening(LOG_S *, char [], int, char []);
 size_t get_html(char **);
+int handle_POST(char *, LOG_S*);
+int get_url_str(char *, char **, LOG_S*);
 
 void fill_hints(struct addrinfo *);
 
@@ -117,6 +119,7 @@ int start_listening
         LOG(log_buffer, logs);
         memset(log_buffer, 0, LOG_BUFF_SIZE);
         while(true) {
+            memset(req_buffer, 0, REQ_BUF_SIZE);
             sin_size = sizeof(their_addres);
             new_fd = accept(sock_fd, (struct sockaddr *)&their_addres, &sin_size);
 
@@ -137,11 +140,11 @@ int start_listening
                 LOG("Unable to read petition", logs);
                 continue;
             }
-
-            LOG(req_buffer, logs);
+            
             
             if (strncmp(req_buffer, "GET", 3) == 0) {
                 LOG("Here we handle GET requests", logs);
+                LOG(req_buffer, logs);
                 rc = send(new_fd, headers, strlen(headers), 0);
                 if (-1 == rc) {
                     LOG("Unable to send headers", logs);
@@ -154,7 +157,7 @@ int start_listening
                     continue;
                 }
             } else if (strncmp(req_buffer, "POST", 4) == 0){
-                LOG("Here we handle POST requests", logs);
+                handle_POST(req_buffer, logs);
             } else {
                 LOG("We should not see this LOG at all, else for reqest methods", logs);
             }
@@ -169,7 +172,29 @@ int start_listening
     return 0;
 }
 
-size_t get_html(char **html)
+int handle_POST
+(char *req_buffer, LOG_S *logs)
+{
+    size_t url_length;
+    char *pos;
+    char *url;
+
+    LOG("Getting post info", logs);
+    get_content_length(req_buffer, &url, logs);
+    return 0;
+}
+
+int get_content_length
+(char *req_buffer, char **url_str, LOG_S*logs)
+{
+    char *needle = req_buffer;
+    char *cont_char = "Content-length: "; 
+
+    return 0;
+}
+
+size_t get_html
+(char **html)
 {
     int fd;
     int length;
@@ -205,7 +230,8 @@ void fill_hints
     hints->ai_flags = 0;
 }
 
-void *get_in_addr(struct sockaddr *sa)
+void *get_in_addr
+(struct sockaddr *sa)
 {
     void *addr_p = &(((struct sockaddr_in6 *)sa)->sin6_addr);
 

@@ -60,4 +60,5 @@ pid_t fork_gui()
     if (!my_pid) {
         init_window();
     }
+    return my_pid;
 }
