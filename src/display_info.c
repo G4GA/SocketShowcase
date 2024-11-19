@@ -9,8 +9,6 @@ char *LABELS[] = {
     "Address Family:\0",    
     "Socket Type:\0",       
     "Protocol:\0",          
-    "Canonical Name:\0",    
-    "Scope ID (IPv6):\0",   
 };
 
 void init_display_info

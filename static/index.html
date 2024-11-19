@@ -34,23 +34,55 @@
             let send_btn = document.getElementById('send-btn')
             let text_input = document.getElementById('floatingTextarea2')
             send_btn.addEventListener('click', (event) => {
-                let text = text_input.value
-                fetch('/submit', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(text)
-                })
-                .then(response => response.text)
-                .then(result => {
-                    console.log('Server Response:', result);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-                text_input.value = ''
-            })
+    let text = text_input.value;
+    
+    if (text.trim() === "") {
+        // Create or update the error message in red
+        let errorMsg = document.getElementById('error-msg');
+        if (!errorMsg) {
+            errorMsg = document.createElement('div');
+            errorMsg.id = 'error-msg';
+            errorMsg.style.color = 'red';
+            document.body.appendChild(errorMsg);
+        }
+        errorMsg.textContent = "Cannot send empty string";
+    } else {
+        // Remove error message if it exists
+        let errorMsg = document.getElementById('error-msg');
+        if (errorMsg) {
+            errorMsg.remove();
+        }
+
+        // Create or update the success message in green
+        let successMsg = document.getElementById('success-msg');
+        if (!successMsg) {
+            successMsg = document.createElement('p');
+            successMsg.id = 'success-msg';
+            successMsg.style.color = 'green';
+            document.body.appendChild(successMsg);
+        }
+        successMsg.style.color = '#98fb98'; // Pastel green
+        successMsg.textContent = "URL send successful!";
+        
+        // Send the POST request
+        fetch('/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(text)
+        })
+        .then(response => response.text())
+        .then(result => {
+            console.log('Server Response:', result);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+        
+        text_input.value = '';
+    }
+});
         </script>
     </body>
 </html>

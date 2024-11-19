@@ -11,9 +11,14 @@
 #include <sys/socket.h>
 
 #include "server.h"
+#include "manager.h"
 #include "include/log.h"
 
 #define REQ_BUF_SIZE 1024
+
+const char *POST_LINE_DEL = "\r\n";
+const char *CONTENT_LINE_DEL = "\r\n\r\n";
+const char *CONT_L_STR = "Content-Length:"; 
 
 void *get_in_addr(struct sockaddr *);
 int init_socket(LOG_S *, char [], struct addrinfo *, int *);
@@ -22,6 +27,7 @@ int start_listening(LOG_S *, char [], int, char []);
 size_t get_html(char **);
 int handle_POST(char *, LOG_S*);
 int get_url_str(char *, char **, LOG_S*);
+int send_url_str(char *, size_t, LOG_S*);
 
 void fill_hints(struct addrinfo *);
 
@@ -157,7 +163,10 @@ int start_listening
                     continue;
                 }
             } else if (strncmp(req_buffer, "POST", 4) == 0){
-                handle_POST(req_buffer, logs);
+                rc = handle_POST(req_buffer, logs);
+                if (rc) {
+                    LOG("POST handling failed", logs);
+                }
             } else {
                 LOG("We should not see this LOG at all, else for reqest methods", logs);
             }
@@ -176,21 +185,95 @@ int handle_POST
 (char *req_buffer, LOG_S *logs)
 {
     size_t url_length;
-    char *pos;
-    char *url;
+    size_t rc = 0;
+    char *url = NULL;
 
     LOG("Getting post info", logs);
-    get_content_length(req_buffer, &url, logs);
-    return 0;
+    url_length = get_url_str(req_buffer, &url, logs);
+
+    LOG("Sending post info", logs);
+    rc = send_url_str(url, url_length, logs);
+
+    return rc;
 }
 
-int get_content_length
+int send_url_str(char *url, size_t url_size, LOG_S *logs)
+{
+    struct addrinfo hints, *res = NULL;
+    int s_fd,
+        rc = 0,
+        yes = 1;
+    memset(&hints, 0, sizeof(hints));
+
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_family = AF_INET;
+
+    getaddrinfo("127.0.0.1", LOCAL_COMMUNICATION_PORT, &hints, &res);
+    if (!res) {
+        LOG("Failed to get addrinfo", logs);
+    } else {
+        s_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+        setsockopt(s_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+    }
+
+    
+    rc = connect(s_fd, res->ai_addr, res->ai_addrlen);
+    if (rc == -1) {
+        LOG("Failed to connect to local port", logs);
+    }
+
+    freeaddrinfo(res);
+    if (-1 != rc) {
+        send(s_fd, url, url_size, 0);
+        LOG("Send successfull", logs);
+    }
+
+    close(s_fd);
+
+    return rc;
+}
+
+int get_url_str
 (char *req_buffer, char **url_str, LOG_S*logs)
 {
     char *needle = req_buffer;
-    char *cont_char = "Content-length: "; 
+    char *log_buffer[64] = {0};
+    char *cont_buffer;
+    int delimited_size;
+    size_t content_size = 0;
+    int rc = 0;
 
-    return 0;
+    while (strncmp(needle + strlen(POST_LINE_DEL), CONT_L_STR, strlen(CONT_L_STR)) != 0) {
+        needle = strstr(needle + strlen(POST_LINE_DEL), POST_LINE_DEL);
+    }
+#ifdef ENABLE_LOGGING
+
+    delimited_size = strstr(needle + strlen(POST_LINE_DEL), POST_LINE_DEL) - needle - strlen(POST_LINE_DEL);
+        
+    sprintf(log_buffer, "%.*s", delimited_size, needle + strlen(POST_LINE_DEL));
+    LOG(log_buffer, logs);
+    memset(log_buffer, 0, 64);
+#endif
+    content_size = strtol(strchr(needle, ':') + 1, NULL, 10);
+
+#ifdef ENABLE_LOGGING
+    sprintf(log_buffer, "Number extracted: %lu", content_size);
+    LOG(log_buffer, logs);
+    memset(log_buffer, 0, 64);
+#endif
+    *url_str = calloc(content_size + 1, sizeof(char));
+    if (*url_str) {
+        needle = strstr(needle, CONTENT_LINE_DEL);
+        sprintf(*url_str, "%.*s", content_size, needle + strlen(CONTENT_LINE_DEL));
+
+#ifdef ENABLE_LOGGING
+        sprintf(log_buffer, "Content extracted: %s", *url_str);
+        LOG(log_buffer, logs);
+        memset(log_buffer, 0, 64);
+#endif
+    }
+
+    return content_size;
 }
 
 size_t get_html

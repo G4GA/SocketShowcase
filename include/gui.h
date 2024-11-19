@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <arpa/inet.h>
+#include <stdbool.h>
 
 #define LABEL_ARRAY_SIZE 32
 
@@ -13,8 +14,15 @@ typedef struct {
 } info_pair;
 
 typedef struct {
-    info_pair pairs[8];
+    info_pair pairs[5];
 } display_info;
+
+typedef struct {
+    char *pair_one;
+    char *pair_two;
+    bool is_one;
+    bool exit_status;
+} string_pair;
 
 enum {
     D_INDEX_IP = 0,

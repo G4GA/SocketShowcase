@@ -7,7 +7,6 @@
 #include <stdio.h>
 
 
-
 int init_app()
 {
     int rc = 0;

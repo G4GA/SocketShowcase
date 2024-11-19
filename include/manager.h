@@ -4,6 +4,8 @@
 
 #include "../src/include/log.h"
 
+#define LOCAL_COMMUNICATION_PORT "50000"
+
 typedef struct procs {
     pid_t server;
     pid_t gui;
